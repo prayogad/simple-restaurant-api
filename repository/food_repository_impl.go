@@ -26,8 +26,9 @@ func (repository *FoodRepositoryImpl) Save(ctx context.Context, Tx *sql.Tx, food
 
 func (repository *FoodRepositoryImpl) Update(ctx context.Context, Tx *sql.Tx, food domain.Food) domain.Food {
 	currentFood := domain.Food{}
+	currentFood.Id = food.Id
 	SQL := "SELECT name, price, stock FROM food WHERE id = $1"
-	err := Tx.QueryRowContext(ctx, SQL, food.Id).Scan(&currentFood.Name, &currentFood.Price, &currentFood.Stock)
+	err := Tx.QueryRowContext(ctx, SQL, currentFood.Id).Scan(&currentFood.Name, &currentFood.Price, &currentFood.Stock)
 	helper.PanicIfError(err)
 
 	if food.Name != "" {

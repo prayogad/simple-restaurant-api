@@ -21,6 +21,10 @@ func NewRouter(customerController controller.CustomerController, foodController 
 
 	// Food API
 	router.POST("/food/create", foodController.Create)
+	router.PUT("/food/update/:foodId", foodController.Update)
+	router.DELETE("/food/delete/:foodId", foodController.Delete)
+	router.GET("/food/:foodId", foodController.FindById)
+	router.GET("/food", foodController.FindAll)
 
 	router.PanicHandler = exceptions.ErrorHandler
 

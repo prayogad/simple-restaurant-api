@@ -53,12 +53,12 @@ func (service *FoodServiceImpl) Update(ctx context.Context, request web.FoodUpda
 	helper.PanicIfError(err)
 	defer helper.CommitOrRollback(tx)
 
-	food, err := service.FoodRepository.FindById(ctx, tx, request.Id)
+	_, err = service.FoodRepository.FindById(ctx, tx, request.Id)
 	if err != nil {
 		panic(exceptions.NewNotFoundError(err.Error()))
 	}
 
-	food = service.FoodRepository.Update(ctx, tx, food)
+	food := service.FoodRepository.Update(ctx, tx, domain.Food(request))
 
 	return helper.ToFoodResponse(food)
 }

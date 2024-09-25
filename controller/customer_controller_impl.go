@@ -55,6 +55,7 @@ func (controller *CustomerControllerImpl) Login(writer http.ResponseWriter, requ
 	http.SetCookie(writer, &http.Cookie{
 		Name:     "auth",
 		Value:    customerResponse.Token,
+		Path:     "/customer",
 		Expires:  time.Now().Add(24 * time.Hour), // Cookie expires in 24 hours
 		HttpOnly: true,                           // Make the cookie HTTP only
 	})

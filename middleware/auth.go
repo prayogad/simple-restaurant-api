@@ -6,6 +6,7 @@ import (
 	"simple-restaurant-web/helper"
 	"simple-restaurant-web/model/web"
 	"simple-restaurant-web/service"
+	"strings"
 )
 
 type AuthMiddleware struct {
@@ -23,8 +24,10 @@ func NewAuthMiddleware(handler http.Handler, customerService service.CustomerSer
 // User Must Login First
 func (middleware *AuthMiddleware) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 	header := request.Header.Get("X-API-KEY")
+	roles := request.Header.Get("Authorization")
 	token, err := request.Cookie("auth")
-	noAuthNeeded := []string{"/customer/register", "/customer/login", "/food/create"}
+	noAuthNeeded := []string{"/customer/register", "/customer/login"}
+	// adminOnly := []string{"/food"}
 
 	if header != "RAHASIA" {
 		writer.Header().Set("Content-Type", "application/json")
@@ -47,6 +50,13 @@ func (middleware *AuthMiddleware) ServeHTTP(writer http.ResponseWriter, request 
 			}
 		}
 
+		if roles == "admin" {
+			if strings.HasPrefix(request.URL.Path, "/food") {
+				middleware.Handler.ServeHTTP(writer, request)
+				return
+			}
+		}
+
 		writer.Header().Set("Content-Type", "application/json")
 		writer.WriteHeader(http.StatusUnauthorized)
 
@@ -58,7 +68,6 @@ func (middleware *AuthMiddleware) ServeHTTP(writer http.ResponseWriter, request 
 		helper.WriteToResponseBody(writer, webResponse)
 	} else {
 		// ok
-
 		id, username := middleware.CustomerService.ValidateToken(token.Value)
 		if username == "" && id == 0 {
 			for _, path := range noAuthNeeded {
