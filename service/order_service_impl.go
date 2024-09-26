@@ -1,0 +1,56 @@
+package service
+
+import (
+	"context"
+	"database/sql"
+	"simple-restaurant-web/helper"
+	"simple-restaurant-web/model/domain"
+	"simple-restaurant-web/model/web"
+	"simple-restaurant-web/repository"
+
+	"github.com/go-playground/validator"
+)
+
+type OrderServiceImpl struct {
+	OrderRepository repository.OrderRepository
+	DB              *sql.DB
+	Validate        *validator.Validate
+}
+
+func NewOrderService(orderRepository repository.OrderRepository, DB *sql.DB, validate *validator.Validate) OrderService {
+	return &OrderServiceImpl{
+		OrderRepository: orderRepository,
+		DB:              DB,
+		Validate:        validate,
+	}
+}
+
+func (service *OrderServiceImpl) Create(ctx context.Context, request web.OrderCreateRequest) web.OrderResponse {
+	err := service.Validate.Struct(request)
+	helper.PanicIfError(err)
+
+	tx, err := service.DB.Begin()
+	helper.PanicIfError(err)
+	defer helper.CommitOrRollback(tx)
+
+	orders := domain.Orders{}
+
+	for _, orderDetail := range request.OrderDetails {
+		// Buat instance baru dari OrderDetail dan isi dengan data dari request
+		newOrderDetail := domain.OrderDetail{
+			FoodId:   orderDetail.FoodId,
+			Quantity: orderDetail.Quantity,
+		}
+
+		// Tambahkan newOrderDetail ke slice orders.OrderDetails
+		orders.OrderDetails = append(orders.OrderDetails, newOrderDetail)
+	}
+
+	orderResponse := service.OrderRepository.Save(ctx, tx, orders)
+
+	return helper.ToOrderResponse(orderResponse)
+}
+
+func (service *OrderServiceImpl) FindById(ctx context.Context, foodId int) web.OrderResponse {
+	return web.OrderResponse{}
+}

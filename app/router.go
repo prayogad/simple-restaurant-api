@@ -7,7 +7,7 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-func NewRouter(customerController controller.CustomerController, foodController controller.FoodController) *httprouter.Router {
+func NewRouter(customerController controller.CustomerController, foodController controller.FoodController, orderController controller.OrderController) *httprouter.Router {
 	router := httprouter.New()
 
 	// Customer API
@@ -26,6 +26,7 @@ func NewRouter(customerController controller.CustomerController, foodController 
 	router.GET("/food/:foodId", foodController.FindById)
 	router.GET("/food", foodController.FindAll)
 
+	router.POST("/customer/order", orderController.Create)
 	router.PanicHandler = exceptions.ErrorHandler
 
 	return router

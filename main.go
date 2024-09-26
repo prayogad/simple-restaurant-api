@@ -25,7 +25,11 @@ func main() {
 	foodService := service.NewFoodService(foodRepository, db, validate)
 	foodController := controller.NewFoodController(foodService)
 
-	router := app.NewRouter(customerController, foodController)
+	orderRepository := repository.NewOrderRepository()
+	orderService := service.NewOrderService(orderRepository, db, validate)
+	orderController := controller.NewOrderController(orderService)
+
+	router := app.NewRouter(customerController, foodController, orderController)
 
 	server := http.Server{
 		Addr:    "localhost:8080",

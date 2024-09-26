@@ -7,7 +7,6 @@ import (
 )
 
 type OrderRepository interface {
-	Save(ctx context.Context, Tx *sql.Tx, order domain.Orders, orderDetail []domain.OrderDetail) (domain.Orders, domain.OrderDetail)
-	FindById(ctx context.Context, Tx *sql.Tx, orderId int) (domain.Orders, domain.OrderDetail, error)
-	FindAll(ctx context.Context, Tx *sql.Tx) []domain.Orders
+	Save(ctx context.Context, Tx *sql.Tx, order domain.Orders) domain.Orders
+	FindById(ctx context.Context, Tx *sql.Tx, orderId int) (domain.Orders, []domain.OrderDetail, error)
 }
