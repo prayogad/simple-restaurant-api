@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
 	"simple-restaurant-web/helper"
 	"simple-restaurant-web/model/domain"
 )
@@ -23,7 +22,6 @@ func (repository *OrderRepositoryImpl) Save(ctx context.Context, Tx *sql.Tx, ord
 	err := Tx.QueryRowContext(ctx, SQL, ctx.Value("idCustomer")).Scan(&idOrder)
 	helper.PanicIfError(err)
 	order.Id = idOrder
-	fmt.Println(order.OrderDetails)
 	for _, detail := range order.OrderDetails {
 		SQL = "INSERT INTO order_detail(order_id, food_id, quantity) VALUES($1, $2, $3)"
 		_, err := Tx.ExecContext(ctx, SQL, idOrder, detail.FoodId, detail.Quantity)
@@ -38,8 +36,9 @@ func (repository *OrderRepositoryImpl) Save(ctx context.Context, Tx *sql.Tx, ord
 	_, err = Tx.ExecContext(ctx, SQL, order.Quantity, order.TotalPrice, idOrder)
 	helper.PanicIfError(err)
 
-	SQL = "SELECT name, price, quantity FROM order_detail JOIN food ON food.id = order_detail.food_id WHERE order_id = $1"
+	order.OrderDetails = []domain.OrderDetail{}
 
+	SQL = "SELECT name, price, quantity FROM order_detail JOIN food ON food.id = order_detail.food_id WHERE order_id = $1"
 	rows, err := Tx.QueryContext(ctx, SQL, idOrder)
 	helper.PanicIfError(err)
 	defer rows.Close()
@@ -50,19 +49,6 @@ func (repository *OrderRepositoryImpl) Save(ctx context.Context, Tx *sql.Tx, ord
 		helper.PanicIfError(err)
 		order.OrderDetails = append(order.OrderDetails, newOrderDetail)
 	}
-
-	// for _, orderDetail := range order.OrderDetails {
-	// 	// newOrderDetail := domain.OrderDetail{
-	// 	// 	FoodName:  orderDetail.FoodName,
-	// 	// 	FoodPrice: orderDetail.FoodPrice,
-	// 	// 	Quantity:  orderDetail.Quantity,
-	// 	// }
-	// 	orderDetail.FoodName = newOrderDetail.FoodName
-	// 	orderDetail.FoodPrice = newOrderDetail.FoodPrice
-	// 	orderDetail.Quantity = newOrderDetail.Quantity
-	// 	order.OrderDetails = append(order.OrderDetails, orderDetail)
-
-	// }
 
 	return order
 }
