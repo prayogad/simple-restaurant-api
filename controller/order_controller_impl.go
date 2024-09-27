@@ -26,7 +26,7 @@ func (controller *OrderControllerImpl) Create(writer http.ResponseWriter, reques
 	orderResponse := controller.OrderService.Create(request.Context(), orderCreateRequest)
 	webResponse := web.WebResponse{
 		Success: true,
-		Message: "Sukses",
+		Message: "Successfully Create Order Data",
 		Data:    orderResponse,
 	}
 

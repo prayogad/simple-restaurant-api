@@ -36,13 +36,10 @@ func (service *OrderServiceImpl) Create(ctx context.Context, request web.OrderCr
 	orders := domain.Orders{}
 
 	for _, orderDetail := range request.OrderDetails {
-		// Buat instance baru dari OrderDetail dan isi dengan data dari request
 		newOrderDetail := domain.OrderDetail{
 			FoodId:   orderDetail.FoodId,
 			Quantity: orderDetail.Quantity,
 		}
-
-		// Tambahkan newOrderDetail ke slice orders.OrderDetails
 		orders.OrderDetails = append(orders.OrderDetails, newOrderDetail)
 	}
 
