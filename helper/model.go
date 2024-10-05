@@ -48,12 +48,14 @@ func ToFoodResponses(foods []domain.Food) []web.FoodResponse {
 
 func ToOrderResponse(order domain.Orders) web.OrderResponse {
 	var orderDetailResponses []web.OrderDetailResponse
+
 	for _, orderDetail := range order.OrderDetails {
 		newOrderDetail := web.OrderDetailResponse{
 			FoodName:  orderDetail.FoodName,
 			FoodPrice: orderDetail.FoodPrice,
 			Quantity:  orderDetail.Quantity,
 		}
+
 		orderDetailResponses = append(orderDetailResponses, newOrderDetail)
 	}
 
@@ -63,4 +65,14 @@ func ToOrderResponse(order domain.Orders) web.OrderResponse {
 		TotalPrice:    float32(order.TotalPrice),
 		OrderDetail:   orderDetailResponses,
 	}
+}
+
+func ToOrderResponses(orders []domain.Orders) []web.OrderResponse {
+	var orderResponses []web.OrderResponse
+
+	for _, order := range orders {
+		orderResponses = append(orderResponses, ToOrderResponse(order))
+	}
+
+	return orderResponses
 }

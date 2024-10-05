@@ -89,9 +89,9 @@ func (repository *CustomerRepositoryImpl) ValidateToken(Tx *sql.Tx, token string
 	return newId, username
 }
 
-func (repository *CustomerRepositoryImpl) Logout(ctx context.Context, Tx *sql.Tx, customerId int) {
-	SQL := "UPDATE customer SET token = null WHERE id = $1"
-	_, err := Tx.ExecContext(ctx, SQL, customerId)
+func (repository *CustomerRepositoryImpl) Logout(ctx context.Context, Tx *sql.Tx) {
+	SQL := "UPDATE customer SET token = null WHERE username = $1"
+	_, err := Tx.ExecContext(ctx, SQL, ctx.Value("usernameCustomer"))
 	helper.PanicIfError(err)
 
 }
@@ -126,9 +126,10 @@ func (repository *CustomerRepositoryImpl) Delete(ctx context.Context, Tx *sql.Tx
 	helper.PanicIfError(err)
 }
 
-func (repository *CustomerRepositoryImpl) FindById(ctx context.Context, Tx *sql.Tx, customerId int) (domain.Customer, error) {
-	SQL := "SELECT id, username FROM customer WHERE id = $1"
-	rows, err := Tx.QueryContext(ctx, SQL, customerId)
+func (repository *CustomerRepositoryImpl) CurrentCustomer(ctx context.Context, Tx *sql.Tx) (domain.Customer, error) {
+	username := ctx.Value("usernameCustomer")
+	SQL := "SELECT id, username FROM customer WHERE username = $1"
+	rows, err := Tx.QueryContext(ctx, SQL, username)
 	helper.PanicIfError(err)
 	defer rows.Close()
 

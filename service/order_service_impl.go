@@ -48,6 +48,22 @@ func (service *OrderServiceImpl) Create(ctx context.Context, request web.OrderCr
 	return helper.ToOrderResponse(orderResponse)
 }
 
-func (service *OrderServiceImpl) FindById(ctx context.Context, foodId int) web.OrderResponse {
-	return web.OrderResponse{}
+func (service *OrderServiceImpl) Get(ctx context.Context) []web.OrderResponse {
+	tx, err := service.DB.Begin()
+	helper.PanicIfError(err)
+	defer helper.CommitOrRollback(tx)
+
+	orderResponse := service.OrderRepository.Get(ctx, tx)
+
+	return helper.ToOrderResponses(orderResponse)
+}
+
+func (service *OrderServiceImpl) GetDetail(ctx context.Context, orderId int) web.OrderResponse {
+	tx, err := service.DB.Begin()
+	helper.PanicIfError(err)
+	defer helper.CommitOrRollback(tx)
+
+	orderResponse := service.OrderRepository.GetDetail(ctx, tx, orderId)
+
+	return helper.ToOrderResponse(orderResponse)
 }

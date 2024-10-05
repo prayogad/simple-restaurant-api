@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"simple-restaurant-web/helper"
 	"simple-restaurant-web/model/domain"
 )
@@ -19,9 +18,10 @@ func (repository *OrderRepositoryImpl) Save(ctx context.Context, Tx *sql.Tx, ord
 	var idOrder int
 	order.IdCustomer = ctx.Value("idCustomer").(int)
 	SQL := `INSERT INTO "order"(id_customer) VALUES($1) RETURNING id`
-	err := Tx.QueryRowContext(ctx, SQL, ctx.Value("idCustomer")).Scan(&idOrder)
+	err := Tx.QueryRowContext(ctx, SQL, order.IdCustomer).Scan(&idOrder)
 	helper.PanicIfError(err)
 	order.Id = idOrder
+
 	for _, detail := range order.OrderDetails {
 		SQL = "INSERT INTO order_detail(order_id, food_id, quantity) VALUES($1, $2, $3)"
 		_, err := Tx.ExecContext(ctx, SQL, idOrder, detail.FoodId, detail.Quantity)
@@ -53,32 +53,42 @@ func (repository *OrderRepositoryImpl) Save(ctx context.Context, Tx *sql.Tx, ord
 	return order
 }
 
-func (repository *OrderRepositoryImpl) FindById(ctx context.Context, Tx *sql.Tx, orderId int) (domain.Orders, []domain.OrderDetail, error) {
-	SQL := `SELECT id, total_quantity, total_price, id_customer FROM "order" WHERE id = $1`
-	rows, err := Tx.QueryContext(ctx, SQL, orderId)
+func (repository *OrderRepositoryImpl) Get(ctx context.Context, Tx *sql.Tx) []domain.Orders {
+	SQL := `SELECT id, total_quantity, total_price, id_customer FROM "order" WHERE id_customer = $1`
+	rows, err := Tx.QueryContext(ctx, SQL, ctx.Value("idCustomer"))
 	helper.PanicIfError(err)
 	defer rows.Close()
 
-	order := domain.Orders{}
-	if rows.Next() {
+	orders := []domain.Orders{}
+	for rows.Next() {
+		order := domain.Orders{}
 		err := rows.Scan(&order.Id, &order.Quantity, &order.TotalPrice, &order.IdCustomer)
 		helper.PanicIfError(err)
-	} else {
-		return order, nil, errors.New("order data not found")
+		orders = append(orders, order)
 	}
 
-	SQL = "SELECT name, price, quantity FROM order_detail JOIN food ON food.id = order_detail.food_id WHERE order_id = $1"
-	rows, err = Tx.QueryContext(ctx, SQL, orderId)
+	return orders
+}
+
+func (repository *OrderRepositoryImpl) GetDetail(ctx context.Context, Tx *sql.Tx, orderId int) domain.Orders {
+	var order domain.Orders
+	SQL := `SELECT id, total_quantity, total_price FROM "order" WHERE id_customer = $1 AND id = $2`
+	err := Tx.QueryRowContext(ctx, SQL, ctx.Value("idCustomer"), orderId).Scan(&order.Id, &order.Quantity, &order.TotalPrice)
+	helper.PanicIfError(err)
+
+	order.OrderDetails = []domain.OrderDetail{}
+
+	SQL = "SELECT food.name, food.price, order_detail.quantity FROM order_detail JOIN food ON food.id = order_detail.food_id WHERE order_id = $1"
+	rows, err := Tx.QueryContext(ctx, SQL, order.Id)
 	helper.PanicIfError(err)
 	defer rows.Close()
 
-	orderDetails := []domain.OrderDetail{}
 	for rows.Next() {
 		orderDetail := domain.OrderDetail{}
 		err := rows.Scan(&orderDetail.FoodName, &orderDetail.FoodPrice, &orderDetail.Quantity)
 		helper.PanicIfError(err)
-		orderDetails = append(orderDetails, orderDetail)
+		order.OrderDetails = append(order.OrderDetails, orderDetail)
 	}
 
-	return order, orderDetails, nil
+	return order
 }

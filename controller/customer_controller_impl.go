@@ -64,11 +64,7 @@ func (controller *CustomerControllerImpl) Login(writer http.ResponseWriter, requ
 }
 
 func (controller *CustomerControllerImpl) Logout(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
-	customerId := params.ByName("id")
-	id, err := strconv.Atoi(customerId)
-	helper.PanicIfError(err)
-
-	controller.CustomerService.Logout(request.Context(), id)
+	controller.CustomerService.Logout(request.Context())
 	webResponse := web.WebResponse{
 		Success: true,
 		Message: "Logout Successfully",
@@ -89,11 +85,6 @@ func (controller *CustomerControllerImpl) Logout(writer http.ResponseWriter, req
 func (controller *CustomerControllerImpl) Update(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
 	customerUpdateRequest := web.CustomerUpdateRequest{}
 	helper.ReadFromRequestBody(request, &customerUpdateRequest)
-
-	customerId := params.ByName("id")
-	id, err := strconv.Atoi(customerId)
-	helper.PanicIfError(err)
-	customerUpdateRequest.Id = id
 
 	customerResponse := controller.CustomerService.Update(request.Context(), customerUpdateRequest)
 	webResponse := web.WebResponse{
@@ -120,11 +111,7 @@ func (controller *CustomerControllerImpl) Delete(writer http.ResponseWriter, req
 }
 
 func (controller *CustomerControllerImpl) FindById(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
-	customerId := params.ByName("id")
-	id, err := strconv.Atoi(customerId)
-	helper.PanicIfError(err)
-
-	customerResponse := controller.CustomerService.FindById(request.Context(), id)
+	customerResponse := controller.CustomerService.CurrentCustomer(request.Context())
 	webResponse := web.WebResponse{
 		Success: true,
 		Message: "Successfully Fetch Customer Data",

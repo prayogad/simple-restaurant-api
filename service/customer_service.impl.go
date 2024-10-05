@@ -73,20 +73,21 @@ func (service *CustomerServiceImpl) ValidateToken(token string) (idCustomer int,
 	return id, username
 }
 
-func (service *CustomerServiceImpl) Logout(ctx context.Context, customerId int) {
+func (service *CustomerServiceImpl) Logout(ctx context.Context) {
 	tx, err := service.DB.Begin()
 	helper.PanicIfError(err)
 	defer helper.CommitOrRollback(tx)
 
-	_, err = service.CustomerRepository.FindById(ctx, tx, customerId)
+	_, err = service.CustomerRepository.CurrentCustomer(ctx, tx)
 	if err != nil {
 		panic(exceptions.NewNotFoundError(err.Error()))
 	}
 
-	service.CustomerRepository.Logout(ctx, tx, customerId)
+	service.CustomerRepository.Logout(ctx, tx)
 }
 
 func (service *CustomerServiceImpl) Update(ctx context.Context, request web.CustomerUpdateRequest) web.CustomerResponse {
+	request.Id = ctx.Value("idCustomer").(int)
 	err := service.Validate.Struct(request)
 	helper.PanicIfError(err)
 
@@ -94,7 +95,7 @@ func (service *CustomerServiceImpl) Update(ctx context.Context, request web.Cust
 	helper.PanicIfError(err)
 	defer helper.CommitOrRollback(tx)
 
-	customer, err := service.CustomerRepository.FindById(ctx, tx, request.Id)
+	customer, err := service.CustomerRepository.CurrentCustomer(ctx, tx)
 	if err != nil {
 		panic(exceptions.NewNotFoundError(err.Error()))
 	}
@@ -112,7 +113,7 @@ func (service *CustomerServiceImpl) Delete(ctx context.Context, customerId int) 
 	helper.PanicIfError(err)
 	defer helper.CommitOrRollback(tx)
 
-	customer, err := service.CustomerRepository.FindById(ctx, tx, customerId)
+	customer, err := service.CustomerRepository.CurrentCustomer(ctx, tx)
 	if err != nil {
 		panic(exceptions.NewNotFoundError(err.Error()))
 	}
@@ -120,12 +121,12 @@ func (service *CustomerServiceImpl) Delete(ctx context.Context, customerId int) 
 	service.CustomerRepository.Delete(ctx, tx, customer)
 }
 
-func (service *CustomerServiceImpl) FindById(ctx context.Context, customerId int) web.CustomerResponse {
+func (service *CustomerServiceImpl) CurrentCustomer(ctx context.Context) web.CustomerResponse {
 	tx, err := service.DB.Begin()
 	helper.PanicIfError(err)
 	defer helper.CommitOrRollback(tx)
 
-	customer, err := service.CustomerRepository.FindById(ctx, tx, customerId)
+	customer, err := service.CustomerRepository.CurrentCustomer(ctx, tx)
 	if err != nil {
 		panic(exceptions.NewNotFoundError(err.Error()))
 	}

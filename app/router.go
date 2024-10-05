@@ -13,10 +13,10 @@ func NewRouter(customerController controller.CustomerController, foodController 
 	// Customer API
 	router.POST("/customer/register", customerController.Create)
 	router.POST("/customer/login", customerController.Login)
-	router.POST("/customer/logout/:id", customerController.Logout)
-	router.PUT("/customer/update/:id", customerController.Update)
+	router.POST("/customer/logout", customerController.Logout)
+	router.PUT("/customer/update", customerController.Update)
 	router.DELETE("/customer/delete/:id", customerController.Delete)
-	router.GET("/customer/find/:id", customerController.FindById)
+	router.GET("/customer/current", customerController.FindById)
 	router.GET("/customer/findAll", customerController.FindAll)
 
 	// Food API
@@ -26,7 +26,11 @@ func NewRouter(customerController controller.CustomerController, foodController 
 	router.GET("/food/:foodId", foodController.FindById)
 	router.GET("/food", foodController.FindAll)
 
+	// Order
 	router.POST("/customer/order", orderController.Create)
+	router.GET("/customer/order", orderController.Get)
+	router.GET("/customer/orderDetail/:orderId", orderController.GetDetail)
+
 	router.PanicHandler = exceptions.ErrorHandler
 
 	return router
